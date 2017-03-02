@@ -107,6 +107,6 @@ app.on('stormpath.ready',function(){
 });
 
 // log when server is ready to go and listening
-app.listen(process.env.PORT || 3000, function() {
+app.listen(process.env.PORT || 80, function() {
   console.log('Server started!');
 });
