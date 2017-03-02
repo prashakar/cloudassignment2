@@ -1,3 +1,4 @@
+block content;
 html
   head
     title=title
@@ -5,10 +6,13 @@ html
   body
     div.container
       div.jumbotron
+
         h1 #{heading}
+        h2#content
+
         p
         form(action='/saved', method='POST')
-          button.btn.btn-default(type="submit") View saved movies
+          button.btn.btn-default(type="submit") View saved gifs
 
         ul
           each image in allImages
@@ -17,3 +21,21 @@ html
 
         div.pull-right
           a(href="/") Return to home page
+
+
+
+          script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js")
+          script.
+            console.log('skldfjs');
+            var socket = io.connect('http://localhost:3000');
+            socket.on('test', function(data) {
+            console.log('Got test:', data.numClients);
+            document.getElementById("content").innerHTML = "CURRENT ACTIVE USERS " + data.numClients;
+            });
+
+style.
+    body {
+        font-family: Helvetica;
+        font-size: 13px;
+        background: #8BC34A;
+    }

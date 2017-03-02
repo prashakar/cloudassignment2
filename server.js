@@ -1,9 +1,14 @@
 var express = require('express');
 var stormpath = require('express-stormpath');
 var request = require('request');
+var http = require('http');
 
 // use express for serving webpages
 var app = express();
+
+var server = require('http').Server(app);
+
+var io = require('socket.io')(server);
 
 // database related tasks, setup
 var sqlite3 = require('sqlite3').verbose();
@@ -12,11 +17,11 @@ var db = new sqlite3.Database('userData.db');
 var check;
 var stmt;
 // used to store all img urls
-var movieImages = [];
+var gifs = [];
 
 // if table doesnt exist, create it
 db.serialize(function() {
-  db.run("CREATE TABLE if not exists user_data (movie TEXT)")
+  db.run("CREATE TABLE if not exists user_data (gif TEXT)")
   stmt = db.prepare("INSERT INTO user_data VALUES (?)");
 });
 
@@ -40,29 +45,56 @@ app.get('/', stormpath.getUser, function(req, res) {
 // profile route, only allow if auth
 app.use('/profile', stormpath.authenticationRequired, require('./profile')());
 
+var srvSockets = io.sockets.sockets;
+
 // access to actual data, only allow if auth
 app.use('/data', stormpath.authenticationRequired, function(req, res) {
+
+  io.on('connection', function(socket) {
+    io.emit('test', { numClients: Object.keys(srvSockets).length });
+    // socket.emit('test', { message: 'A new user has joined!' });
+  });
+
+
+  //
+  // io.on('connection', function(socket) {
+  //   numClients++;
+  //   io.emit('test', { numClients: numClients });
+  //
+  //   console.log('Connected clients:', numClients);
+  //
+  //   socket.on('disconnect', function() {
+  //     numClients--;
+  //     io.emit('test', { numClients: numClients });
+  //
+  //     console.log('Connected clients:', numClients);
+  //   });
+  // });
+
   // prepare the url
-  var url = "http://netflixroulette.net/api/api.php?actor=" +
-  encodeURIComponent(req.user.customData.favActor);
+  var url = "http://api.giphy.com/v1/gifs/search?q=" +
+  encodeURIComponent(req.user.customData.gif) +
+  "&api_key=dc6zaTOxFJmzC";
+
   console.log(url)
   request(url, function(error, response, body) {
     // here is the response, parse it
-    var dataJson = JSON.parse(body)
+    var dataJson = JSON.parse(body).data
     // used to store all img urls
-    var viewMovieImages = [];
+    var allGifs = [];
     // check if response is empty
     if (dataJson.length > 0) {
-      // iterate each movie and add to the storage
+      // iterate each gif and add to the storage
       for (var obj of dataJson) {
-        viewMovieImages.push(obj.poster)
-        movieImages.push(obj.poster)
-        stmt.run(obj.poster);
+        allGifs.push(obj.images.original.url)
+        gifs.push(obj.images.original.url)
+        stmt.run(obj.images.original.url);
+        console.log(obj.images.original.url)
       }
-      heading = "Here are some movies"
+      heading = "Check out these gifs related to your search"
       hasResults = true
     } else {
-      // no movies found, enter another actor
+      // no gifs found, enter another actor
       heading = "Sorry no results, update your profile!"
       hasResults = false
     }
@@ -71,7 +103,7 @@ app.use('/data', stormpath.authenticationRequired, function(req, res) {
       title: 'Your results',
       hasResults: hasResults,
       heading: heading,
-      allImages: viewMovieImages
+      allImages: allGifs
     });
   });
 });
@@ -79,25 +111,25 @@ app.use('/data', stormpath.authenticationRequired, function(req, res) {
 // access to actual data, only allow if auth
 app.use('/saved', stormpath.authenticationRequired, function(req, res) {
 
-  db.each("SELECT rowid as id, movie FROM user_data", function(err, row) {
-    console.log(row.id + " SAVED: " + row.movie);
-  });
-  console.log(movieImages)
-  // check if any movies have been saved
-  if (movieImages.length > 0) {
-    heading = "Here your saved movies"
+  // db.each("SELECT rowid as id, gif FROM user_data", function(err, row) {
+  //   console.log(row.id + " SAVED: " + row.gif);
+  // });
+  console.log(gifs)
+  // check if any gifs have been saved
+  if (gifs.length > 0) {
+    heading = "Here your saved gifs"
     hasResults = true
   } else {
-    // no movies found, enter another actor
-    heading = "Looks like you don't have any movies saved!"
+    // no gifs found, enter another actor
+    heading = "Looks like you don't have any gifs saved!"
     hasResults = false
   }
   // render the html
   res.render('saved', {
-    title: 'Saved movies',
+    title: 'Saved gifs',
     hasResults: hasResults,
     heading: heading,
-    allImages: movieImages
+    allImages: gifs
   });
 });
 
@@ -107,6 +139,6 @@ app.on('stormpath.ready',function(){
 });
 
 // log when server is ready to go and listening
-app.listen(process.env.PORT || 3000, function() {
+server.listen(process.env.PORT || 3000, function() {
   console.log('Server started!');
 });

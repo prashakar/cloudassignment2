@@ -16,7 +16,7 @@ var profileForm = forms.create({
   surname: forms.fields.string({ required: true }),
   city: forms.fields.string(),
   age: forms.fields.string(),
-  favActor: forms.fields.string()
+  gif: forms.fields.string()
 });
 
 // A render function that will render our form and
@@ -30,7 +30,7 @@ function renderForm(req,res,locals){
     givenName: req.user.givenName,
     surname: req.user.surname,
     age: req.user.customData.age,
-    favActor: req.user.customData.favActor
+    gif: req.user.customData.gif
   },locals||{}));
 }
 
@@ -62,7 +62,7 @@ module.exports = function profile(){
         req.user.givenName = form.data.givenName;
         req.user.surname = form.data.surname;
         req.user.customData.age = form.data.age;
-        req.user.customData.favActor = form.data.favActor;
+        req.user.customData.gif = form.data.gif;
         req.user.customData.save();
         req.user.save(function(err){
           if(err){

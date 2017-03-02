@@ -5,7 +5,7 @@ html
   body
     div.container
       div.jumbotron
-        h1 Hello!
+        h1 WELCOME TO THE GIF VIEWER!
 
         if user
           p Welcome, #{user.fullName}
@@ -13,7 +13,7 @@ html
             a.small(href="profile") Edit profile
 
           P
-            a.small(href="data") View suggested movies
+            a.small(href="data") View gifs!
           form(action='/logout', method='POST')
             button.btn.btn-default(type="submit") Logout
         else
@@ -24,3 +24,10 @@ html
             span.small Don't have an account?
             span &nbsp;
             a.small(href="/register") Register now
+
+style.
+  body {
+      font-family: Helvetica;
+      font-size: 13px;
+      background: #8BC34A;
+  }
