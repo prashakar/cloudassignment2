@@ -1,0 +1,23 @@
+html
+  head
+    title=title
+    link(href='//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css', rel='stylesheet')
+  body
+    div.container
+      div.jumbotron
+        h1 #{heading}
+
+        ul
+          each image in allImages
+            img(src=image)
+            form(action='/logout', method='POST')
+
+        div.pull-right
+          a(href="/") Return to home page
+
+style.
+    body {
+        font-family: Helvetica;
+        font-size: 13px;
+        background: #8BC34A;
+    }
